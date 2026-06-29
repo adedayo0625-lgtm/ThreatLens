@@ -69,3 +69,4 @@ threatlens/
 
 Visitor data is stored **in memory** and resets when the server restarts. For persistent storage, swap the `visitors` list for a database (SQLite, PostgreSQL, etc.).
 # ThreatLens
+# threatlen
