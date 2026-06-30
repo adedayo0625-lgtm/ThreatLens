@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberDNA — Threat Intelligence Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #00ff88;
+      --green-dim: #00cc70;
+      --green-10: rgba(0,255,136,0.10);
+      --green-05: rgba(0,255,136,0.05);
+      --green-40: rgba(0,255,136,0.40);
+      --red: #ff4444;
+      --amber: #e8a838;
+      --bg: #0a0d12;
+      --bg2: #0d1a12;
+      --bg3: #100a0a;
+      --border: #0d2018;
+      --border2: #1e3a2f;
+      --text: #e2e8f0;
+      --text-muted: #6b9e82;
+      --text-dim: #3d7a5a;
+      --text-dark: #2d7a4f;
+      --text-darker: #1e5c38;
+      --text-darkest: #1e4028;
+      --mono: 'JetBrains Mono', 'Courier New', monospace;
+      --sans: 'Inter', system-ui, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2.5rem;
+      border-bottom: 0.5px solid var(--border2);
+      position: sticky;
+      top: 0;
+      background: rgba(10,13,18,0.95);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+    }
+
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-helix { width: 32px; height: 32px; flex-shrink: 0; }
+    .logo-text { font-size: 18px; font-weight: 500; color: var(--green); letter-spacing: 2px; }
+    .logo-sub { font-size: 10px; color: #4a7c5e; letter-spacing: 3px; margin-top: -2px; }
+
+    .nav-links { display: flex; gap: 2rem; }
+    .nav-links a {
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: #4a7c5e;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--green); }
+
+    .nav-badge {
+      background: var(--green-10);
+      border: 0.5px solid var(--green-40);
+      color: var(--green);
+      font-size: 10px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 6rem 2rem 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,136,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,136,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    .scan-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,255,136,0.3), transparent);
+      animation: scandown 5s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes scandown { 0% { top: 0; } 100% { top: 100%; } }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--green);
+      margin-bottom: 1.5rem;
+      opacity: 0.8;
+      position: relative;
+    }
+
+    .hero-title {
+      font-family: var(--sans);
+      font-size: clamp(2rem, 5vw, 3.8rem);
+      font-weight: 500;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+      color: #f0fdf4;
+      position: relative;
+    }
+    .hero-title .accent { color: var(--green); }
+
+    .hero-subtitle {
+      font-family: var(--sans);
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.8;
+      position: relative;
+    }
+
+    /* ── SEARCH ── */
+    .search-box {
+      max-width: 580px;
+      margin: 0 auto 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .search-inner {
+      display: flex;
+      background: var(--bg2);
+      border: 1px solid #1e5c38;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .search-inner:focus-within { border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,255,136,0.08); }
+
+    .search-icon {
+      padding: 0 14px;
+      color: var(--text-dark);
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--green);
+      font-size: 14px;
+      padding: 15px 8px;
+      font-family: var(--mono);
+      letter-spacing: 0.5px;
+    }
+    .search-input::placeholder { color: #2d5e3e; }
+
+    .search-btn {
+      background: var(--green);
+      color: #071210;
+      border: none;
+      padding: 0 28px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      cursor: pointer;
+      font-family: var(--mono);
+      transition: background 0.2s;
+    }
+    .search-btn:hover { background: var(--green-dim); }
+
+    .search-tags {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .tag {
+      font-size: 11px;
+      color: var(--text-dark);
+      border: 0.5px solid var(--border2);
+      padding: 4px 14px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tag:hover { border-color: var(--green-40); color: var(--green); }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      padding: 2.5rem 2rem;
+      border-top: 0.5px solid var(--border);
+      border-bottom: 0.5px solid var(--border);
+      margin-top: 3rem;
+      flex-wrap: wrap;
+    }
+    .stat-item { text-align: center; }
+    .stat-num { font-size: 26px; font-weight: 500; color: var(--green); }
+    .stat-label { font-size: 11px; color: var(--text-dark); letter-spacing: 1px; margin-top: 2px; }
+
+    /* ── SECTION ── */
+    .section {
+      padding: 4rem 2rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .section-title {
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--green);
+      margin-bottom: 2.5rem;
+      opacity: 0.7;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .step {
+      background: var(--bg);
+      padding: 1.6rem;
+      position: relative;
+    }
+    .step-num { font-size: 10px; color: var(--text-darker); letter-spacing: 2px; margin-bottom: 0.8rem; }
+    .step-icon { font-size: 24px; color: var(--green); margin-bottom: 0.8rem; }
+    .step-title { font-family: var(--sans); font-size: 14px; color: #d4f5e4; margin-bottom: 0.4rem; font-weight: 500; }
+    .step-desc { font-family: var(--sans); font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+
+    /* ── SCAN DEMO ── */
+    .dna-demo {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 2rem;
+      margin-bottom: 1rem;
+    }
+    .demo-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    .demo-title { font-size: 12px; letter-spacing: 2px; color: var(--green); }
+    .demo-live { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dark); }
+    .dot-live {
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: blink 2s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    .terminal-line { font-size: 11px; color: var(--text-darker); letter-spacing: 0.5px; margin-bottom: 5px; }
+    .terminal-line .g { color: var(--green); }
+    .terminal-line .r { color: var(--red); }
+    .terminal-line .a { color: var(--amber); }
+
+    .score-display {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      margin: 1.5rem 0;
+      flex-wrap: wrap;
+    }
+
+    .score-ring { position: relative; width: 110px; height: 110px; flex-shrink: 0; }
+    .score-ring svg { transform: rotate(-90deg); }
+    .score-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .score-num { font-size: 28px; font-weight: 500; color: var(--red); }
+    .score-label { font-size: 9px; color: #4a7c5e; letter-spacing: 1px; }
+
+    .score-details { flex: 1; min-width: 220px; }
+    .score-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+    .score-bar-label { font-size: 10px; color: #4a7c5e; width: 110px; letter-spacing: 0.5px; flex-shrink: 0; }
+    .score-bar-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .score-bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+    .score-bar-val { font-size: 11px; color: var(--text-muted); width: 28px; text-align: right; }
+
+    .exposure-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 8px;
+      margin-top: 1.5rem;
+    }
+    .exposure-card {
+      background: var(--bg2);
+      border: 0.5px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .exp-icon { font-size: 20px; margin-bottom: 6px; }
+    .exp-title { font-family: var(--sans); font-size: 11px; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 3px; }
+    .exp-count { font-size: 22px; font-weight: 500; color: #d4f5e4; }
+    .exp-status { font-size: 10px; margin-top: 4px; letter-spacing: 0.5px; font-family: var(--sans); }
+    .status-warn { color: var(--amber); }
+    .status-crit { color: var(--red); }
+    .status-ok  { color: var(--green); }
+
+    /* ── ATTACKER VIEW ── */
+    .attacker-view {
+      background: var(--bg3);
+      border: 0.5px solid #2d1010;
+      border-radius: 10px;
+      padding: 1.5rem;
+    }
+    .attacker-header {
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--red);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .attack-chain { display: flex; flex-direction: column; gap: 8px; }
+    .chain-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 12px;
+      border-left: 2px solid #2d1010;
+    }
+    .chain-item.high { border-left-color: var(--red); }
+    .chain-item.med  { border-left-color: var(--amber); }
+    .chain-icon { font-size: 15px; margin-top: 1px; flex-shrink: 0; }
+    .chain-item.high .chain-icon { color: var(--red); }
+    .chain-item.med  .chain-icon { color: var(--amber); }
+    .chain-text { font-family: var(--sans); font-size: 12px; line-height: 1.6; color: #7a3535; }
+    .chain-item.med .chain-text { color: #7a6020; }
+    .chain-text strong { font-weight: 500; }
+    .chain-item.high .chain-text strong { color: #ff8888; }
+    .chain-item.med  .chain-text strong { color: #e8c878; }
+
+    /* ── FEATURES ── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+    .feature-card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+    .feature-card:hover { border-color: #1e5c38; }
+    .feat-icon { font-size: 22px; color: var(--green); margin-bottom: 0.8rem; }
+    .feat-title { font-family: var(--sans); font-size: 14px; color: #d4f5e4; margin-bottom: 0.4rem; font-weight: 500; }
+    .feat-desc { font-family: var(--sans); font-size: 12px; color: var(--text-dim); line-height: 1.7; }
+
+    /* ── PRICING ── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .price-card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .price-card.featured { border-color: #1e5c38; background: #0a140e; }
+    .price-badge {
+      display: inline-block;
+      font-size: 10px;
+      letter-spacing: 1px;
+      background: var(--green-10);
+      color: var(--green);
+      border: 0.5px solid var(--green-40);
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 0.4rem;
+      width: fit-content;
+    }
+    .price-tier { font-size: 14px; letter-spacing: 2px; color: #d4f5e4; }
+    .price-amount { font-size: 32px; font-weight: 500; color: var(--green); }
+    .price-amount span { font-size: 14px; color: var(--text-muted); }
+    .price-desc { font-family: var(--sans); font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+    .price-features { list-style: none; margin-top: 0.4rem; display: flex; flex-direction: column; gap: 6px; }
+    .price-features li { font-family: var(--sans); font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+    .price-features li i { color: var(--green); font-size: 14px; }
+    .price-btn {
+      margin-top: auto;
+      padding: 10px;
+      background: transparent;
+      border: 0.5px solid #1e5c38;
+      color: var(--green);
+      border-radius: 6px;
+      font-size: 11px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      font-family: var(--mono);
+      transition: all 0.2s;
+    }
+    .price-btn:hover { background: var(--green-05); }
+    .price-btn.primary { background: var(--green); color: #071210; border-color: var(--green); }
+    .price-btn.primary:hover { background: var(--green-dim); }
+
+    /* ── CTA ── */
+    .cta-section {
+      text-align: center;
+      padding: 4rem 2rem;
+      border-top: 0.5px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-title { font-family: var(--sans); font-size: 26px; color: #d4f5e4; margin-bottom: 0.5rem; font-weight: 500; }
+    .cta-sub { font-family: var(--sans); font-size: 13px; color: var(--text-dim); margin-bottom: 1.5rem; }
+    .cta-btn {
+      background: transparent;
+      border: 1px solid rgba(0,255,136,0.5);
+      color: var(--green);
+      padding: 14px 36px;
+      border-radius: 6px;
+      font-size: 13px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      font-family: var(--mono);
+      transition: all 0.2s;
+    }
+    .cta-btn:hover { background: var(--green-10); border-color: var(--green); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 0.5px solid var(--border);
+      padding: 2rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: gap;
+      gap: 1rem;
+    }
+    .footer-left { font-size: 11px; color: var(--text-darkest); letter-spacing: 1px; }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { font-size: 11px; color: var(--text-darker); text-decoration: none; letter-spacing: 0.5px; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--green); }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #0d1a12;
+      border: 0.5px solid #1e5c38;
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 480px;
+      width: 100%;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .modal-title { font-size: 13px; letter-spacing: 2px; color: var(--green); margin-bottom: 1rem; }
+    .modal-body { font-family: var(--sans); font-size: 13px; color: var(--text-muted); line-height: 1.8; }
+    .modal-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid #1e5c38;
+      border-radius: 6px;
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 14px;
+      padding: 12px 14px;
+      outline: none;
+      margin: 1rem 0;
+      transition: border-color 0.2s;
+    }
+    .modal-input:focus { border-color: var(--green); }
+    .modal-submit {
+      width: 100%;
+      background: var(--green);
+      color: #071210;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .modal-submit:hover { background: var(--green-dim); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      nav { padding: 1rem 1.2rem; }
+      .nav-links { display: none; }
+      .hero { padding: 4rem 1.2rem 2rem; }
+      .section { padding: 3rem 1.2rem; }
+      .stats-bar { gap: 1.5rem; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="logo" href="#">
+      <svg class="logo-helix" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <path d="M8 6 C8 6 24 10 24 16 C24 22 8 26 8 26" stroke="#00ff88" stroke-width="1.5" fill="none"/>
+        <path d="M24 6 C24 6 8 10 8 16 C8 22 24 26 24 26" stroke="rgba(0,255,136,0.4)" stroke-width="1.5" fill="none"/>
+        <circle cx="16" cy="16" r="2" fill="#00ff88"/>
+        <circle cx="8"  cy="11" r="1.5" fill="rgba(0,255,136,0.6)"/>
+        <circle cx="24" cy="11" r="1.5" fill="rgba(0,255,136,0.6)"/>
+        <circle cx="8"  cy="21" r="1.5" fill="rgba(0,255,136,0.6)"/>
+        <circle cx="24" cy="21" r="1.5" fill="rgba(0,255,136,0.6)"/>
+      </svg>
+      <div>
+        <div class="logo-text">CYBERDNA</div>
+        <div class="logo-sub">THREAT INTELLIGENCE</div>
+      </div>
+    </a>
+    <div class="nav-links">
+      <a href="#how">HOW IT WORKS</a>
+      <a href="#demo">DEMO</a>
+      <a href="#features">FEATURES</a>
+      <a href="#pricing">PRICING</a>
+    </div>
+    <div class="nav-badge">BETA ACCESS</div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="scan-line" aria-hidden="true"></div>
+    <div class="hero-eyebrow">// DIGITAL IDENTITY FORENSICS</div>
+    <h1 class="hero-title">
+      Your entire online presence,<br>
+      <span class="accent">seen through an attacker's eyes.</span>
+    </h1>
+    <p class="hero-subtitle">
+      CyberDNA maps your digital footprint, scores your exposure risk, and shows exactly how a threat actor could build a profile on you — before they do.
+    </p>
+
+    <div class="search-box">
+      <div class="search-inner">
+        <div class="search-icon"><i class="ti ti-scan" aria-hidden="true"></i></div>
+        <input
+          class="search-input"
+          id="mainSearch"
+          type="text"
+          placeholder="email, username, phone, or domain..."
+          aria-label="Enter email, username, phone, or domain to scan"
+        />
+        <button class="search-btn" onclick="openScan()">SCAN ↗</button>
+      </div>
+      <div class="search-tags" role="group" aria-label="Example input types">
+        <button class="tag" onclick="setExample('email')">email</button>
+        <button class="tag" onclick="setExample('username')">username</button>
+        <button class="tag" onclick="setExample('phone')">phone</button>
+        <button class="tag" onclick="setExample('domain')">domain</button>
+      </div>
+    </div>
+
+    <div class="stats-bar" aria-label="Platform statistics">
+      <div class="stat-item"><div class="stat-num">4.2B+</div><div class="stat-label">RECORDS INDEXED</div></div>
+      <div class="stat-item"><div class="stat-num">340+</div><div class="stat-label">DATA SOURCES</div></div>
+      <div class="stat-item"><div class="stat-num">12s</div><div class="stat-label">AVG SCAN TIME</div></div>
+      <div class="stat-item"><div class="stat-num">98.7%</div><div class="stat-label">ACCURACY RATE</div></div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" id="how">
+    <div class="section-title">// HOW IT WORKS</div>
+    <div class="how-steps">
+      <div class="step">
+        <div class="step-num">01 / INPUT</div>
+        <i class="ti ti-fingerprint step-icon" aria-hidden="true"></i>
+        <div class="step-title">Submit an identifier</div>
+        <div class="step-desc">Enter any email, username, phone number, or domain. One data point is enough to start the trace.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02 / CRAWL</div>
+        <i class="ti ti-topology-star step-icon" aria-hidden="true"></i>
+        <div class="step-title">Map the exposure graph</div>
+        <div class="step-desc">CyberDNA traces your identity across breached databases, social platforms, WHOIS records, and public APIs.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03 / SCORE</div>
+        <i class="ti ti-chart-radar step-icon" aria-hidden="true"></i>
+        <div class="step-title">Generate your CyberDNA score</div>
+        <div class="step-desc">A composite 0–100 risk score weighted across breach severity, data freshness, and cross-platform linkability.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">04 / REPORT</div>
+        <i class="ti ti-shield-exclamation step-icon" aria-hidden="true"></i>
+        <div class="step-title">See the attacker's view</div>
+        <div class="step-desc">We reconstruct exactly what a threat actor sees — then show you step-by-step how to reduce your exposure.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMO / SAMPLE SCAN -->
+  <section class="section" id="demo">
+    <div class="section-title">// SAMPLE SCAN RESULT</div>
+
+    <div class="dna-demo">
+      <div class="demo-header">
+        <div class="demo-title">SCAN REPORT // user@example.com</div>
+        <div class="demo-live" aria-live="polite"><div class="dot-live" aria-hidden="true"></div> LIVE DEMO</div>
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <p class="terminal-line">&gt; initializing identity graph...</p>
+        <p class="terminal-line">&gt; sources queried: <span class="g">340</span> &nbsp;|&nbsp; matches found: <span class="a">47</span> &nbsp;|&nbsp; critical: <span class="r">3</span></p>
+        <p class="terminal-line">&gt; breach history: <span class="r">LinkedIn 2021, RockYou2024, HaveIBeenPwned ×6</span></p>
+        <p class="terminal-line">&gt; linked identities resolved: <span class="a">jsmith_dev, john.smith.42, @jsmith88</span></p>
+        <p class="terminal-line">&gt; compiling CyberDNA report... <span class="g">COMPLETE</span></p>
+      </div>
+
+      <div class="score-display">
+        <div class="score-ring" aria-label="CyberDNA risk score: 73 out of 100, High Risk">
+          <svg width="110" height="110" viewBox="0 0 110 110">
+            <circle cx="55" cy="55" r="46" stroke="#0d2018" stroke-width="9" fill="none"/>
+            <circle cx="55" cy="55" r="46" stroke="#ff4444" stroke-width="9" fill="none"
+              stroke-dasharray="289" stroke-dashoffset="78" stroke-linecap="round"/>
+          </svg>
+          <div class="score-center">
+            <div class="score-num">73</div>
+            <div class="score-label">HIGH RISK</div>
+          </div>
+        </div>
+
+        <div class="score-details">
+          <div class="score-bar-row">
+            <div class="score-bar-label">BREACH DEPTH</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:85%;background:#ff4444"></div></div>
+            <div class="score-bar-val">85</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-label">LINKABILITY</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:78%;background:#e8a838"></div></div>
+            <div class="score-bar-val">78</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-label">DATA FRESHNESS</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:61%;background:#e8a838"></div></div>
+            <div class="score-bar-val">61</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-label">SOCIAL SURFACE</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:54%;background:#00ff88"></div></div>
+            <div class="score-bar-val">54</div>
+          </div>
+          <div class="score-bar-row">
+            <div class="score-bar-label">LOCATION LEAK</div>
+            <div class="score-bar-track"><div class="score-bar-fill" style="width:43%;background:#00ff88"></div></div>
+            <div class="score-bar-val">43</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exposure-grid">
+        <div class="exposure-card">
+          <i class="ti ti-database-leak exp-icon" style="color:#ff4444" aria-hidden="true"></i>
+          <div class="exp-title">DATA BREACHES</div>
+          <div class="exp-count">6</div>
+          <div class="exp-status status-crit">3 with passwords</div>
+        </div>
+        <div class="exposure-card">
+          <i class="ti ti-social exp-icon" style="color:#e8a838" aria-hidden="true"></i>
+          <div class="exp-title">SOCIAL PROFILES</div>
+          <div class="exp-count">11</div>
+          <div class="exp-status status-warn">4 cross-linked</div>
+        </div>
+        <div class="exposure-card">
+          <i class="ti ti-world exp-icon" style="color:#e8a838" aria-hidden="true"></i>
+          <div class="exp-title">PUBLIC RECORDS</div>
+          <div class="exp-count">8</div>
+          <div class="exp-status status-warn">Address exposed</div>
+        </div>
+        <div class="exposure-card">
+          <i class="ti ti-mail-opened exp-icon" style="color:#00ff88" aria-hidden="true"></i>
+          <div class="exp-title">EMAIL ALIASES</div>
+          <div class="exp-count">3</div>
+          <div class="exp-status status-ok">All identified</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="attacker-view">
+      <div class="attacker-header">
+        <i class="ti ti-eye" aria-hidden="true"></i>
+        ATTACKER RECONNAISSANCE CHAIN
+      </div>
+      <div class="attack-chain">
+        <div class="chain-item high">
+          <i class="ti ti-mail chain-icon" aria-hidden="true"></i>
+          <div class="chain-text">Email <strong>user@example.com</strong> found in 6 breaches. Password hash crackable via RockYou2024 wordlist. Credential stuffing risk: critical.</div>
+        </div>
+        <div class="chain-item high">
+          <i class="ti ti-link chain-icon" aria-hidden="true"></i>
+          <div class="chain-text">Username pattern <strong>jsmith88</strong> resolves across Twitter, Reddit, GitHub, Steam, and HackerNews — full activity timeline reconstructible.</div>
+        </div>
+        <div class="chain-item med">
+          <i class="ti ti-map-pin chain-icon" aria-hidden="true"></i>
+          <div class="chain-text">Home ZIP code inferred from <strong>3 WHOIS registrations</strong> and a 2019 Nextdoor post. Cross-referenced with LinkedIn employer location data.</div>
+        </div>
+        <div class="chain-item med">
+          <i class="ti ti-device-mobile chain-icon" aria-hidden="true"></i>
+          <div class="chain-text">Phone number <strong>+1 (XXX) XXX-4471</strong> found in a 2022 Meta scrape. Carrier identified. SMS phishing vector viable.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section" id="features">
+    <div class="section-title">// PLATFORM CAPABILITIES</div>
+    <div class="features">
+      <div class="feature-card">
+        <i class="ti ti-dna feat-icon" aria-hidden="true"></i>
+        <div class="feat-title">Identity graph mapping</div>
+        <div class="feat-desc">Automatically links usernames, emails, and phone numbers across platforms to build a full identity cluster.</div>
+      </div>
+      <div class="feature-card">
+        <i class="ti ti-database feat-icon" aria-hidden="true"></i>
+        <div class="feat-title">Breach intelligence</div>
+        <div class="feat-desc">Scans 340+ breach databases including dark web sources. Shows exactly what data is out there and how recent it is.</div>
+      </div>
+      <div class="feature-card">
+        <i class="ti ti-clock-shield feat-icon" aria-hidden="true"></i>
+        <div class="feat-title">Continuous monitoring</div>
+        <div class="feat-desc">Get alerted the moment your identity appears in a new breach, paste site, or dark web forum post.</div>
+      </div>
+      <div class="feature-card">
+        <i class="ti ti-chart-dots feat-icon" aria-hidden="true"></i>
+        <div class="feat-title">Risk score over time</div>
+        <div class="feat-desc">Track how your CyberDNA score improves as you remediate exposures and delete dormant accounts.</div>
+      </div>
+      <div class="feature-card">
+        <i class="ti ti-building-bank feat-icon" aria-hidden="true"></i>
+        <div class="feat-title">Enterprise org scanning</div>
+        <div class="feat-desc">Scan your entire organization's domain to identify which employees are most exposed and at-risk.</div>
+      </div>
+      <div class="feature-card">
+        <i class="ti ti-shield-check feat-icon" aria-hidden="true"></i>
+        <div class="feat-title">Remediation playbook</div>
+        <div class="feat-desc">Step-by-step guides to reduce your score: account deletion links, opt-out forms, and hardening checklists.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="section" id="pricing">
+    <div class="section-title">// PRICING</div>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-tier">FREE</div>
+        <div class="price-amount">$0 <span>/ forever</span></div>
+        <div class="price-desc">Run a single scan. See your score and top 3 exposures.</div>
+        <ul class="price-features">
+          <li><i class="ti ti-check" aria-hidden="true"></i> 1 scan per day</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i> CyberDNA score</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i> Breach count</li>
+        </ul>
+        <button class="price-btn" onclick="openModal()">START FREE ↗</button>
+      </div>
+      <div class="price-card featured">
+        <div class="price-badge">MOST POPULAR</div>
+        <div class="price-tier">PERSONAL</div>
+        <div class="price-amount">$9 <span>/ month</span></div>
+        <div class="price-desc">Full scan results, attacker view, and continuous monitoring for one identity.</div>
+        <ul class="price-features">
+          <li><i class="ti ti-check" aria-hidden="true"></i> Unlimited scans</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i> Full attacker chain report</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i> Continuous monitoring</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i> Remediation playbook</li>
+        </ul>
+        <button class="price-btn primary" onclick="openModal()">GET STARTED ↗</button>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">ENTERPRISE</div>
+        <div class="price-amount">Custom</div>
+        <div class="price-desc">Org-wide domain scanning, API access, SIEM integration, and dedicated support.</div>
+        <ul class="price-features">
+          <li><i class="ti ti-check" aria-hidden="true"></i> Domain-wide scanning</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i> API + SIEM integration</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i> Employee risk dashboard</li>
+          <li><i class="ti ti-check" aria-hidden="true"></i> Dedicated analyst support</li>
+        </ul>
+        <button class="price-btn" onclick="openModal()">CONTACT SALES ↗</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <div class="grid-bg" aria-hidden="true"></div>
+    <h2 class="cta-title">Scan yourself before attackers do.</h2>
+    <p class="cta-sub">Free scan. No account required. Results in under 15 seconds.</p>
+    <button class="cta-btn" onclick="document.getElementById('mainSearch').focus(); window.scrollTo({top:0,behavior:'smooth'})">RUN FREE SCAN ↗</button>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-left">© 2025 CYBERDNA — FOR AUTHORIZED USE ONLY</div>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Responsible Disclosure</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Contact</a>
+    </div>
+  </footer>
+
+  <!-- SCAN / SIGNUP MODAL -->
+  <div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">
+        <i class="ti ti-x" aria-hidden="true"></i>
+      </button>
+      <div class="modal-title" id="modalTitle">// GET EARLY ACCESS</div>
+      <div class="modal-body">Enter your email to join the beta and run your first full CyberDNA scan.</div>
+      <input class="modal-input" type="email" id="modalEmail" placeholder="your@email.com" aria-label="Your email address" />
+      <button class="modal-submit" onclick="submitModal()">REQUEST ACCESS ↗</button>
+    </div>
+  </div>
+
+  <script>
+    function setExample(type) {
+      const examples = {
+        email: 'yourname@example.com',
+        username: '@yourhandle',
+        phone: '+234 801 234 5678',
+        domain: 'mycompany.io'
+      };
+      document.getElementById('mainSearch').value = examples[type];
+      document.getElementById('mainSearch').focus();
+    }
+
+    function openScan() {
+      const val = document.getElementById('mainSearch').value.trim();
+      if (!val) {
+        document.getElementById('mainSearch').focus();
+        return;
+      }
+      openModal();
+    }
+
+    function openModal() {
+      document.getElementById('modal').classList.add('open');
+      document.getElementById('modalEmail').focus();
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.remove('open');
+    }
+
+    function submitModal() {
+      const email = document.getElementById('modalEmail').value.trim();
+      if (!email || !email.includes('@')) {
+        document.getElementById('modalEmail').style.borderColor = '#ff4444';
+        return;
+      }
+      const btn = document.querySelector('.modal-submit');
+      btn.textContent = 'REQUESTED ✓';
+      btn.style.background = '#0d2018';
+      btn.style.color = '#00ff88';
+      btn.style.border = '0.5px solid #1e5c38';
+      setTimeout(closeModal, 1800);
+    }
+
+    document.getElementById('modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal();
+    });
+  </script>
+
+</body>
+</html>
